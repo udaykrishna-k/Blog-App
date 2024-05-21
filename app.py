@@ -20,7 +20,7 @@ with app.app_context():
 
 @app.route("/")
 def home_page():
-    return "Hello World!!!"
+    return render_template("base.html")
 
 @app.route("/sign_up",methods=["GET","POST"])
 def sign_up():
