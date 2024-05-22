@@ -1,0 +1,6 @@
+This application has many dependencies. Here i will be listing all the commands for installing python libraries
+
+pip install flask
+pip install flask-wtf
+pip install Flask-SQLAlchemy
+pip install pymysql

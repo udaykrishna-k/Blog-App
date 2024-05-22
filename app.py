@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, flash
 from flask_sqlalchemy import SQLAlchemy
+
+from forms.blog_post_form import BlogPostForm
 from forms.signup_form import SignUp
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -14,6 +16,12 @@ class UserModel(db.Model):
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
+
+class BlogPostModel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    author = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -38,3 +46,16 @@ def sign_up():
             form.password.data = ''
             flash("User added succesfully")
     return render_template("sign_up.html", form=form)
+
+@app.route("/add_post", methods=["GET", "POST"])
+def add_post():
+    form = BlogPostForm()
+    if form.validate_on_submit():
+        blog_post_model = BlogPostModel(title=form.title.data, author=form.author.data, content=form.content.data)
+        db.session.add(blog_post_model)
+        db.session.commit()
+        form.title.data = ''
+        form.author.data = ''
+        form.content.data = ''
+        flash("Added post successfully")
+    return render_template("add_post.html", form=form)
