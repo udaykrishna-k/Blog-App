@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from forms.blog_post_form import BlogPostForm
 from forms.signup_form import SignUp
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -11,6 +14,7 @@ app.config["SECRET_KEY"] = "mysupersecretpassword"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:1ds15ec046@localhost/blogapp"
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
@@ -22,6 +26,7 @@ class BlogPostModel(db.Model):
     title = db.Column(db.String(200), nullable=False)
     author = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow())
 
 with app.app_context():
     db.create_all()
@@ -59,3 +64,8 @@ def add_post():
         form.content.data = ''
         flash("Added post successfully")
     return render_template("add_post.html", form=form)
+
+@app.route("/blog_posts")
+def blog_posts():
+    list_of_blog_posts = BlogPostModel.query.all()
+    return render_template('blog_posts.html', list_of_blog_posts=list_of_blog_posts)

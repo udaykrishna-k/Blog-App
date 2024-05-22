@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% for blog_post in list_of_blog_posts %}
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <h2>{{blog_post.title | capitalize}}</h2>
+            By: {{blog_post.author}} <br>
+            <strong>Date Added</strong>: {{blog_post.date_added}} <br>
+            {{blog_post.content}}
+        </div>
+    {% endfor %}
+
+{% endblock %}
