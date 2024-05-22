@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -69,3 +69,28 @@ def add_post():
 def blog_posts():
     list_of_blog_posts = BlogPostModel.query.all()
     return render_template('blog_posts.html', list_of_blog_posts=list_of_blog_posts)
+
+@app.route("/posts/<int:id>")
+def view_post(id):
+    post = BlogPostModel.query.get(id)
+    return render_template("view_post.html", post=post, id=id)
+
+@app.route("/edit_post/<int:id>", methods=["GET", "POST"])
+def edit_post(id):
+    post = BlogPostModel.query.get(id)
+    form = BlogPostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.author = form.author.data
+        post.content = form.content.data
+        db.session.add(post)
+        db.session.commit()
+        form.title.data = ''
+        form.author.data = ''
+        form.content.data = ''
+        flash("Post edited successfully")
+        return redirect(url_for("view_post", id=id))
+    form.title.data = post.title
+    form.author.data = post.author
+    form.content.data = post.content
+    return render_template("edit_post.html", form=form)
