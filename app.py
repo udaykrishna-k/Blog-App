@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager, login_user, logout_user, UserMixin, login_required
 
 from forms.blog_post_form import BlogPostForm
+from forms.login_form import LoginForm
 from forms.signup_form import SignUp
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -15,7 +17,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:1ds15ec046@localho
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-class User(db.Model):
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(200), nullable=False)
     last_name = db.Column(db.String(200), nullable=False)
@@ -40,6 +49,26 @@ with app.app_context():
 def home_page():
     return render_template("base.html")
 
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and check_password_hash(user.password, form.password.data):
+            flash("Login successfull")
+            login_user(user)
+            next_page = request.args.get("next")
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('home_page'))
+        flash("Check username and Password")
+    return render_template("login.html", form=form)
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home_page'))
+
 @app.route("/sign_up",methods=["GET","POST"])
 def sign_up():
     form = SignUp()
@@ -58,7 +87,13 @@ def sign_up():
             form.password.data = ''
             form.confirm_password.data = ''
             flash("User added succesfully")
+            return redirect(url_for("login"))
     return render_template("sign_up.html", form=form)
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template("account.html")
 
 @app.route("/add_post", methods=["GET", "POST"])
 def add_post():
