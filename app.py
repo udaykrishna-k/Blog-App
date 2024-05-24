@@ -15,11 +15,16 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:1ds15ec046@localho
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-class UserModel(db.Model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
+    first_name = db.Column(db.String(200), nullable=False)
+    last_name = db.Column(db.String(200), nullable=False)
+    username = db.Column(db.String(200), nullable=False, unique=True)
     email = db.Column(db.String(200), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return f"({self.first_name + ' ' + self.last_name}, , {self.username}, {self.email})"
 
 class BlogPostModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,16 +44,19 @@ def home_page():
 def sign_up():
     form = SignUp()
     if form.validate_on_submit():
-        if UserModel.query.filter_by(email=form.email.data).first():
+        if User.query.filter_by(email=form.email.data).first():
             flash("Email Id is already registered")
         else:
             password_hash = generate_password_hash(form.password.data)
-            user = UserModel(name=form.name.data, email=form.email.data, password=password_hash)
+            user = User(first_name=form.first_name.data, last_name=form.last_name.data, username=form.username.data, email=form.email.data, password=password_hash)
             db.session.add(user)
             db.session.commit()
-            form.name.data = ''
+            form.first_name.data = ''
+            form.last_name.data = ''
+            form.username.data = ''
             form.email.data = ''
             form.password.data = ''
+            form.confirm_password.data = ''
             flash("User added succesfully")
     return render_template("sign_up.html", form=form)
 
