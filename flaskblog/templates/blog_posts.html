@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% for blog_post in list_of_blog_posts %}
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <article class="media content-section">
+              <div class="media-body">
+                <div class="article-metadata">
+                  <a class="mr-2" href="#">{{ blog_post.author }}</a>
+                  <small class="text-muted">{{ blog_post.date_added }}</small>
+                </div>
+                <h2><a class="article-title" href="#">{{ blog_post.title }}</a></h2>
+              </div>
+            </article>
+
+            <a href="{{url_for('view_post', id=blog_post.id)}}" class="btn btn-outline-secondary">View Post</a>
+        </div>
+    {% endfor %}
+
+{% endblock %}
