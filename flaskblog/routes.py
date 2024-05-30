@@ -1,3 +1,6 @@
+import os.path
+import secrets
+
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -33,6 +36,7 @@ def login():
 @app.route("/logout")
 def logout():
     logout_user()
+    flash("successfully logged out", "success")
     return redirect(url_for('home_page'))
 
 @app.route("/sign_up",methods=["GET","POST"])
@@ -54,20 +58,33 @@ def sign_up():
             return redirect(url_for("login"))
     return render_template("sign_up.html", form=form)
 
-@app.route("/account")
+
+def save_image_file(form_picture):
+    random_text = secrets.token_hex(8)
+    file_name, file_ext = os.path.splitext(form_picture.filename)
+    new_image_filename = random_text + file_ext
+    save_path = os.path.join(app.root_path, "static\\images", new_image_filename)
+    form_picture.save(save_path)
+    return new_image_filename
+
+@app.route("/account", methods = ["GET", "POST"])
 @login_required
 def account():
+    image_file = url_for('static', filename='images/' + current_user.image_file)
     form = UpdateAccountForm()
     if form.validate_on_submit():
+        if form.image_file.data:
+            new_image_file = save_image_file(form.image_file.data)
+            current_user.image_file = new_image_file
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
-        flash("Updated succesfully", "success")
+        flash("Updated successfully", "success")
         return redirect(url_for("account"))
     if request.method == "GET":
         form.username.data = current_user.username
         form.email.data = current_user.email
-    return render_template("account.html", form=form)
+    return render_template("account.html", form=form, image_file=image_file)
 
 @app.route("/add_post", methods=["GET", "POST"])
 def add_post():
