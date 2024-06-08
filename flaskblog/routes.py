@@ -1,7 +1,8 @@
 import os.path
 import secrets
+from datetime import datetime
 
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -86,45 +87,58 @@ def account():
         form.email.data = current_user.email
     return render_template("account.html", form=form, image_file=image_file)
 
-@app.route("/add_post", methods=["GET", "POST"])
+@login_required
+@app.route("/posts/add_post", methods=["GET", "POST"])
 def add_post():
     form = PostForm()
     if form.validate_on_submit():
-        blog_post_model = Post(title=form.title.data, author=form.author.data, content=form.content.data)
+        blog_post_model = Post(title=form.title.data, content=form.content.data, user_id=current_user.id)
         db.session.add(blog_post_model)
         db.session.commit()
         form.title.data = ''
-        form.author.data = ''
         form.content.data = ''
         flash("Added post successfully", "success")
+        return redirect(url_for('blog_posts'))
     return render_template("add_post.html", form=form)
 
-@app.route("/blog_posts")
+@app.route("/posts")
 def blog_posts():
     list_of_blog_posts = Post.query.all()
     return render_template('blog_posts.html', list_of_blog_posts=list_of_blog_posts)
 
+@login_required
 @app.route("/posts/<int:id>")
 def view_post(id):
     post = Post.query.get(id)
     return render_template("view_post.html", post=post, id=id)
 
-@app.route("/edit_post/<int:id>", methods=["GET", "POST"])
+@login_required
+@app.route("/posts/edit_post/<int:id>", methods=["GET", "POST"])
 def edit_post(id):
     post = Post.query.get(id)
+    if post.author != current_user:
+        abort(403)
     form = PostForm()
     if form.validate_on_submit():
         post.title = form.title.data
-        post.author = form.author.data
         post.content = form.content.data
         db.session.add(post)
         db.session.commit()
         form.title.data = ''
-        form.author.data = ''
         form.content.data = ''
         flash("Post edited successfully", "success")
         return redirect(url_for("view_post", id=id))
     form.title.data = post.title
-    form.author.data = post.author
     form.content.data = post.content
     return render_template("edit_post.html", form=form)
+
+@login_required
+@app.route("/posts/delete_post/<int:id>")
+def delete_post(id):
+    post = Post.query.get(id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash("Post deleted successfully", "success")
+    return redirect(url_for("blog_posts"))

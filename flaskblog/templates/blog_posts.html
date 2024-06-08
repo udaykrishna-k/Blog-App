@@ -5,10 +5,11 @@
     {% for blog_post in list_of_blog_posts %}
         <div class="shadow p-3 mb-5 bg-body rounded">
             <article class="media content-section">
+                <img class="rounded-circle article-image" src="{{url_for('static', filename='images/'+ blog_post.author.image_file)}}">
               <div class="media-body">
                 <div class="article-metadata">
-                  <a class="mr-2" href="#">{{ blog_post.author }}</a>
-                  <small class="text-muted">{{ blog_post.date_added }}</small>
+                  <a class="mr-2" href="#">{{ blog_post.author.username }}</a>
+                  <small class="text-muted">{{ blog_post.date_added.strftime("%Y-%m-%d") }}</small>
                 </div>
                 <h2><a class="article-title" href="#">{{ blog_post.title }}</a></h2>
               </div>

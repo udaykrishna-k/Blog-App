@@ -13,7 +13,6 @@ from flaskblog.models import User
 
 class PostForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
-    author = StringField("Author", validators=[DataRequired()])
     content = TextAreaField("Content", widget=TextArea(), validators=[DataRequired()])
     submit = SubmitField("submit")
 

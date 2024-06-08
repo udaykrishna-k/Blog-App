@@ -2,32 +2,44 @@
 
 {% block content %}
 
-    {% for message in get_flashed_messages()%}
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            {{message}}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endfor %}
-
-    <form method = "post">
-        {{form.hidden_tag()}}
-
-        <div class="mb-3">
-            {{form.title.label}}
-            {{form.title(class="form-control")}}
-        </div>
-
-        <div class="mb-3">
-            {{form.author.label}}
-            {{form.author(class="form-control")}}
-        </div>
-
-         <div class="mb-3">
-            {{form.content.label}}
-            {{form.content(rows=5, class="form-control")}}
-         </div>
-
-        {{form.submit(class="btn btn-outline-primary")}}
-    </form>
+    <div class = "content-section">
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb4">Login</legend>
+                <div class="form-group">
+                    {{form.title.label(class="form-control-label")}}
+                    {% if form.title.errors %}
+                        {{form.title(class="form-control form-control-lg is-invalid")}}
+                        <div class="invalid-feedback">
+                            {% for error in form.title.errors %}
+                                <span>{{error}}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{form.title(class="form-control form-control-lg")}}
+                    {% endif %}
+                </div>
+                <br>
+                <div class="form-group">
+                    {{form.content.label(class="form-control-label")}}
+                    {% if form.content.errors %}
+                        {{form.content(class="form-control form-control-lg is-invalid")}}
+                        <div class="invalid-feedback">
+                            {% for error in form.content.errors %}
+                                <span>{{error}}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{form.content(class="form-control form-control-lg")}}
+                    {% endif %}
+                </div>
+                <br>
+            </fieldset>
+            <div class="form-group">
+                {{form.submit(class="btn btn-outline-info")}}
+            </div>
+        </form>
+    </div>
 
 {% endblock %}
